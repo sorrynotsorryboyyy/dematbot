@@ -18,6 +18,7 @@ import { resolveChannel, resolveRoles } from '../lib/guild.js';
 import * as embeds from '../lib/embeds.js';
 import * as logger from '../lib/logger.js';
 import { COLORS, EMOJI } from '../config/brand.js';
+import { block, bullets, stack } from '../lib/layout.js';
 import * as rolePanel from './rolePanel.js';
 import * as rules from './rules.js';
 import * as tickets from './tickets.js';
@@ -30,18 +31,21 @@ const drafts = new Map();
 
 export function buildPanel() {
   const embed = embeds.log({
-    title: '🎛️ Panneau DematGames',
+    title: '🎛️  Panneau DematGames',
     color: COLORS.primary,
-    description: [
-      'Gère le serveur sans retenir la moindre commande.',
-      '',
-      `${EMOJI.announce} **Annonce** — publier une annonce dans un salon`,
-      `${EMOJI.release} **Sortie** — annoncer la sortie d une édition`,
-      `${EMOJI.preorder} **Précommande** — ouvrir les précommandes d un jeu`,
-      `${EMOJI.game} **Fiche jeu** — ajouter ou mettre à jour un jeu du catalogue`,
-      `${EMOJI.roles} **Panneaux** — republier règlement, rôles, support, espace devs`,
-      `${EMOJI.dev} **Partenaire** — promouvoir un membre en développeur partenaire`,
-    ].join('\n'),
+    description: stack(
+      'Gère le serveur sans retenir la moindre commande.\nChaque bouton ouvre un formulaire, affiche un aperçu, puis publie.',
+      block('📤', 'Publier', bullets([
+        [`${EMOJI.announce} Annonce`, 'une annonce dans le salon de ton choix'],
+        [`${EMOJI.release} Sortie`, 'la sortie d une édition physique'],
+        [`${EMOJI.preorder} Précommande`, 'ouvrir les précommandes d un jeu'],
+        [`${EMOJI.game} Fiche jeu`, 'ajouter ou mettre à jour un jeu du catalogue'],
+      ])),
+      block('⚙️', 'Configurer', bullets([
+        [`${EMOJI.roles} Panneaux`, 'republier règlement, rôles, support, espace devs…'],
+        [`${EMOJI.dev} Partenaire`, 'promouvoir un membre en développeur partenaire'],
+      ])),
+    ),
   });
 
   const rows = [

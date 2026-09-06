@@ -21,6 +21,7 @@ import { ticketOverwrites } from '../lib/permissions.js';
 import * as embeds from '../lib/embeds.js';
 import * as logger from '../lib/logger.js';
 import { COLORS, EMOJI, SELLING_POINTS } from '../config/brand.js';
+import { block, bullets, divider, stack } from '../lib/layout.js';
 
 // Reponses en cours de saisie du parcours dev, par utilisateur.
 const wizard = new Map();
@@ -31,12 +32,19 @@ export function buildSupportPanel() {
   return {
     embeds: [
       embeds.log({
-        title: `${EMOJI.ticket} Besoin d aide ?`,
+        title: `${EMOJI.ticket}  Besoin d aide ?`,
         color: COLORS.info,
-        description: [
-          'Une question sur une commande, un colis en route, un souci avec une édition ?',
+        description: stack(
           'Ouvre un ticket : un salon privé est créé entre toi et l équipe DematGames.',
-        ].join('\n'),
+          block('📬', 'On peut t aider sur', bullets([
+            ['Commande', 'paiement, modification, annulation'],
+            ['Colis', 'suivi, retard, livraison'],
+            ['SAV', 'disque rayé, boîtier abîmé, contenu manquant'],
+            ['Autre', 'tout le reste'],
+          ])),
+          divider(),
+          'Un seul ticket ouvert à la fois par sujet. On répond sous quelques jours.',
+        ),
       }),
     ],
     components: [

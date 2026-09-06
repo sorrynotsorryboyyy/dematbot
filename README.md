@@ -73,11 +73,19 @@ Dans cet ordre, sur un **serveur de test** avant le vrai serveur :
 ```
 /setup simulation:true   → affiche ce qui serait créé, sans rien modifier
 /setup                   → crée rôles, catégories, salons et permissions
-/panneaux                → publie règlement, rôles, support, espace devs, FAQ, catalogue
+/panneaux                → publie règlement, rôles, support, espace devs, FAQ, en-têtes de salons
 /panel                   → publie le hub de gestion dans #panel-admin
 ```
 
-`/setup` est **idempotent** : relance-le autant de fois que tu veux, il ne crée que ce qui manque. Les salons existants (`rules`, `moderator-only`) sont réutilisés et rattachés, jamais dupliqués.
+`/setup` est **idempotent** : relance-le autant de fois que tu veux, il ne crée que ce qui manque. Les salons existants sont retrouvés par leur id mémorisé en base, puis rattachés et renommés selon le blueprint — jamais dupliqués, et sans perdre un seul message.
+
+`/panneaux` l'est aussi : il retrouve chaque message permanent par le titre de son embed et le **met à jour** au lieu d'en empiler un nouveau. Relance-le après toute modification d'un texte d'embed.
+
+### Habillage des salons
+
+Les salons portent un emoji suivi du séparateur `・` (`📢・annonces`, `💬・général`…), défini dans `src/config/blueprint.js`. Pour changer un emoji ou un nom : édite le blueprint et relance `/setup`.
+
+Les **embeds d'en-tête** ne sont publiés que dans les salons vitrine (`coulisses`, `vitrine-devs`, `retours-et-idées`, `projets-en-cours`, `sorties-et-précommandes`), le forum et les salons staff. Les salons de discussion (`général`, `hors-sujet`, `jeux-vidéo`, `actus-gaming`, `clips`, `recherche-de-joueurs`, `créations`, `entraide-dev`) restent volontairement vierges pour ne pas gêner la conversation.
 
 ---
 
@@ -151,6 +159,7 @@ L'automod (`src/events/messageCreate.js`) supprime les invitations vers d'autres
 | `src/config/brand.js` | Couleurs, emojis, lien du site, arguments de vente |
 | `src/lib/permissions.js` | Les presets de permissions (`PUBLIC_READONLY`, `MEMBER_CHAT`, `DEV_PARTNER`…) |
 | `src/lib/embeds.js` | L'apparence de tout ce que le bot publie |
+| `src/lib/layout.js` | Séparateurs, puces et titres de section partagés par tous les embeds |
 | `src/components/rules.js` | Le texte du règlement |
 
 Après tout ajout ou modification de commande : `npm run deploy`.

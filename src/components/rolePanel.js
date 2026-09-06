@@ -13,6 +13,7 @@ import { resolveRoles } from '../lib/guild.js';
 import { rolepanels } from '../db/index.js';
 import * as embeds from '../lib/embeds.js';
 import { COLORS } from '../config/brand.js';
+import { block, bullets, divider, stack } from '../lib/layout.js';
 
 // Construit le message du panneau (embed + menus) pour un serveur donne.
 export async function build(guild) {
@@ -47,16 +48,20 @@ export async function build(guild) {
   }
 
   const embed = embeds.log({
-    title: '🏷️ Choisis tes rôles',
+    title: '🏷️  Choisis tes rôles',
     color: COLORS.primary,
-    description: [
+    description: stack(
       'Sélectionne ce qui te correspond. Tu peux en choisir plusieurs, et revenir dessus quand tu veux.',
-      '',
-      '**Plateformes** — sur quoi tu joues, pour trouver des partenaires de jeu.',
-      '**Notifications** — ce dont tu veux être prévenu (annonces, sorties, concours, clips).',
-      '',
-      'Désélectionne une entrée pour retirer le rôle.',
-    ].join('\n'),
+      block('🖥️', 'Plateformes', 'Sur quoi tu joues — pratique pour trouver des partenaires de jeu.'),
+      block('🔔', 'Notifications', bullets([
+        ['📢 Annonces', 'les nouvelles du studio'],
+        ['🚀 Sorties', 'chaque nouvelle édition physique'],
+        ['🎁 Concours', 'les jeux à gagner'],
+        ['🎥 Clips', 'les meilleurs moments de la commu'],
+      ])),
+      divider(),
+      'Désélectionne une entrée pour retirer le rôle correspondant.',
+    ),
   });
 
   return { embed, components, saved };
