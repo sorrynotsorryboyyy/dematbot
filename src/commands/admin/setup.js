@@ -81,6 +81,7 @@ export async function execute(interaction) {
           `**${result.rolesCreated}** rôles créés, **${result.rolesReused}** réutilisés`,
           `**${result.categoriesCreated}** catégories créées, **${result.categoriesReused}** réutilisées`,
           `**${result.channelsCreated}** salons créés, **${result.channelsReused}** réutilisés`,
+          result.channelsRenamed ? `**${result.channelsRenamed}** salons mis à jour (nom, catégorie ou sujet)` : '',
           result.errors.length ? `\n⚠️ ${result.errors.length} erreur(s) :\n${result.errors.slice(0, 5).map((e) => `• ${e}`).join('\n')}` : '',
         ].filter(Boolean).join('\n'),
       }),
@@ -114,7 +115,25 @@ async function buildPlan(guild) {
     if (!existingCat) actions.push({ kind: 'category', def: cat });
 
     for (const ch of cat.channels) {
-      if (!findChannel(guild, ch)) actions.push({ kind: 'channel', def: ch, category: cat });
+      const existing = findChannel(guild, ch);
+
+      if (!existing) {
+        actions.push({ kind: 'channel', def: ch, category: cat });
+        continue;
+      }
+
+      // Le salon existe : signaler ce qui doit encore etre aligne sur le
+      // blueprint (renommage, changement de categorie, sujet). Sans cela,
+      // un simple changement de nom passerait inapercu et /setup conclurait
+      // a tort que le serveur est deja conforme.
+      const changes = [];
+      if (existing.name !== ch.name) changes.push(`\`${existing.name}\` → \`${ch.name}\``);
+      if (existingCat && existing.parentId !== existingCat.id) changes.push(`déplacé vers **${cat.name}**`);
+      if (ch.topic && 'topic' in existing && existing.topic !== ch.topic) changes.push('sujet mis à jour');
+
+      if (changes.length) {
+        actions.push({ kind: 'rename', def: ch, category: cat, existing, changes });
+      }
     }
   }
 
@@ -144,6 +163,7 @@ function renderPlan(plan, dryRun) {
   const roles = plan.actions.filter((a) => a.kind === 'role');
   const cats = plan.actions.filter((a) => a.kind === 'category');
   const chans = plan.actions.filter((a) => a.kind === 'channel');
+  const renames = plan.actions.filter((a) => a.kind === 'rename');
 
   const section = (title, items, fmt) =>
     items.length ? { name: `${title} (${items.length})`, value: items.map(fmt).join('\n').slice(0, 1000) } : null;
@@ -152,13 +172,14 @@ function renderPlan(plan, dryRun) {
     section('Rôles à créer', roles, (a) => `• ${a.def.name}`),
     section('Catégories à créer', cats, (a) => `• ${a.def.name}`),
     section('Salons à créer', chans, (a) => `• ${a.def.name} → ${a.category.name}`),
+    section('Salons à mettre à jour', renames, (a) => `• ${a.changes.join(', ')}`),
   ].filter(Boolean);
 
   return embeds.log({
     title: dryRun ? '🔍 Simulation du setup' : '⚙️ Plan de configuration',
     color: COLORS.primary,
     description: dryRun
-      ? 'Voici ce qui serait créé. Rien n a été modifié.'
+      ? 'Voici ce qui serait fait. Rien n a été modifié.'
       : 'Vérifie le plan puis clique sur **Appliquer**. Rien n est jamais supprimé.',
     fields,
   });
@@ -170,7 +191,7 @@ async function applyPlan(guild, plan) {
   const result = {
     rolesCreated: 0, rolesReused: 0,
     categoriesCreated: 0, categoriesReused: 0,
-    channelsCreated: 0, channelsReused: 0,
+    channelsCreated: 0, channelsReused: 0, channelsRenamed: 0,
     errors: [],
   };
 
@@ -234,7 +255,10 @@ async function applyPlan(guild, plan) {
           if (channel.name !== ch.name) edits.name = ch.name;
           if (channel.parentId !== category.id) edits.parent = category.id;
           if (ch.topic && 'topic' in channel && channel.topic !== ch.topic) edits.topic = ch.topic;
-          if (Object.keys(edits).length) await channel.edit({ ...edits, reason: 'DematBot /setup' });
+          if (Object.keys(edits).length) {
+            await channel.edit({ ...edits, reason: 'DematBot /setup' });
+            result.channelsRenamed += 1;
+          }
           await channel.permissionOverwrites.set(resolvePreset(ch.preset, safeRoles)).catch(() => {});
         } else {
           const options = {
