@@ -18,4 +18,5 @@ const data = await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID)
 
 console.log(`${data.length} commandes déployées :`);
 for (const c of data) console.log(`  /${c.name}`);
-process.exit(0);
+// Pas de process.exit() : le REST client se ferme seul, et forcer la sortie
+// declenche une assertion libuv sur Windows.
