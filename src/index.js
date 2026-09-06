@@ -4,11 +4,20 @@ import 'dotenv/config';
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { loadCommands, loadEvents } from './lib/loader.js';
 import { console_ } from './lib/logger.js';
-import { assertEnv } from './lib/env.js';
+import { assertEnv, verifyTokenOnline } from './lib/env.js';
 
 // Diagnostique la configuration avant toute connexion : un token malforme
 // produirait sinon un "TokenInvalid" opaque au moment du login.
-assertEnv();
+const env = assertEnv();
+
+// Puis on demande a Discord si ce token est encore actif, pour distinguer
+// un token perime d'un token mal recopie.
+const check = await verifyTokenOnline(env.token);
+if (check.ok === false) {
+  console.error(`\n❌ ${check.reason}\n`);
+  process.exit(1);
+}
+if (check.ok) console_.info(`Token validé auprès de Discord : ${check.tag} (${check.id})`);
 
 const client = new Client({
   intents: [

@@ -110,6 +110,38 @@ export function checkEnv({ requireIds = false } = {}) {
   return { token: token.value, clientId: clientId.value, guildId: guildId.value, problems, warnings };
 }
 
+/**
+ * Interroge Discord pour distinguer un token *périmé* (bien formé mais révoqué
+ * par un Reset Token) d'un token malformé. discord.js renvoie "TokenInvalid"
+ * dans les deux cas, ce qui n'aide pas à choisir quoi corriger.
+ * Ne bloque jamais le démarrage : en cas de panne réseau, on laisse le login décider.
+ */
+export async function verifyTokenOnline(token) {
+  try {
+    const res = await fetch('https://discord.com/api/v10/users/@me', {
+      headers: { Authorization: `Bot ${token}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (res.ok) {
+      const user = await res.json();
+      return { ok: true, tag: user.username, id: user.id };
+    }
+    if (res.status === 401) {
+      return {
+        ok: false,
+        reason:
+          'Discord a refusé ce token (401). Il est bien formé mais n est plus actif : ' +
+          'un « Reset Token » plus récent l a invalidé. Recopie la valeur affichée après le DERNIER reset, ' +
+          'et reporte-la partout (local et hébergeur) avant d en générer un nouveau.',
+      };
+    }
+    return { ok: false, reason: `Discord a répondu ${res.status} à la vérification du token.` };
+  } catch {
+    return { ok: null };
+  }
+}
+
 // Affiche le diagnostic et coupe le processus si la configuration est inutilisable.
 export function assertEnv(options) {
   const result = checkEnv(options);
