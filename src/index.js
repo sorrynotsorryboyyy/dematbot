@@ -4,11 +4,11 @@ import 'dotenv/config';
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { loadCommands, loadEvents } from './lib/loader.js';
 import { console_ } from './lib/logger.js';
+import { assertEnv } from './lib/env.js';
 
-if (!process.env.DISCORD_TOKEN) {
-  console.error('DISCORD_TOKEN manquant. Copie .env.example vers .env et renseigne-le.');
-  process.exit(1);
-}
+// Diagnostique la configuration avant toute connexion : un token malforme
+// produirait sinon un "TokenInvalid" opaque au moment du login.
+assertEnv();
 
 const client = new Client({
   intents: [

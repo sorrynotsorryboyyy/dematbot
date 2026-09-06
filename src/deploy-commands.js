@@ -4,15 +4,11 @@
 import 'dotenv/config';
 import { REST, Routes } from 'discord.js';
 import { loadCommands } from './lib/loader.js';
+import { assertEnv } from './lib/env.js';
 
-const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
-
-for (const [key, value] of Object.entries({ DISCORD_TOKEN, CLIENT_ID, GUILD_ID })) {
-  if (!value) {
-    console.error(`${key} manquant dans .env`);
-    process.exit(1);
-  }
-}
+// requireIds : le deploiement a besoin du CLIENT_ID et du GUILD_ID,
+// contrairement au simple demarrage du bot.
+const { token: DISCORD_TOKEN, clientId: CLIENT_ID, guildId: GUILD_ID } = assertEnv({ requireIds: true });
 
 const commands = await loadCommands();
 const body = [...commands.values()].map((c) => c.data.toJSON());

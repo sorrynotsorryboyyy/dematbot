@@ -81,6 +81,22 @@ Dans cet ordre, sur un **serveur de test** avant le vrai serveur :
 
 ---
 
+## Dépannage
+
+### `DiscordjsError [TokenInvalid]: An invalid token was provided`
+
+Le bot vérifie sa configuration au démarrage et affiche la cause exacte avant de tenter la connexion. Relance-le et lis le message : il distingue les cas courants.
+
+- **« un caractère en trop au début »** — un copier-coller a dupliqué le premier caractère. Retire-le, ou recopie le token.
+- **« appartiennent à deux applications différentes »** — le token vient d'une application Discord et le `CLIENT_ID` d'une autre. Reprends **les deux valeurs dans la même application** : onglet *Bot* → *Reset Token*, et *General Information* → *Application ID*.
+- **« mal formé »** ou **« illisible »** — la valeur est tronquée ou altérée. Fais *Reset Token* et recopie l'intégralité.
+
+Discord ne réaffiche jamais un token existant : le seul moyen fiable d'en récupérer un est **Reset Token**. Un token exposé (logs, capture d'écran, commit) doit être réinitialisé immédiatement.
+
+Sur Railway, saisis les variables sans guillemets ni espaces autour du `=`. Les guillemets et espaces parasites sont retirés automatiquement, avec un avertissement dans les logs.
+
+---
+
 ## Commandes
 
 | Commande | Rôle |
