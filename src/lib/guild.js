@@ -1,10 +1,10 @@
 // Resolution des roles et salons du serveur a partir des ids memorises au setup,
 // avec repli sur une recherche par nom si la base est vide (bot reinstalle).
 
-import { ROLES, CATEGORIES } from '../config/blueprint.js';
+import { ROLES, CATEGORIES, STAFF_ROLE_KEYS } from '../config/blueprint.js';
 import { channelId, roleId, setChannelId, setRoleId } from '../db/index.js';
 
-// Retourne { everyone, staff, moderator, devPartner, verified, bots, ... } indexe par cle.
+// Retourne { everyone, staff, founder, admin, helper, devPartner, ... } indexe par cle.
 // Les roles introuvables sont absents de l'objet : les appelants doivent verifier.
 export async function resolveRoles(guild) {
   await guild.roles.fetch();
@@ -66,6 +66,6 @@ export async function resolveCategory(guild, key) {
 // true si le membre fait partie du staff ou de la moderation.
 export function isStaff(member, roles) {
   if (member.permissions.has('Administrator')) return true;
-  const staffIds = [roles.staff?.id, roles.moderator?.id].filter(Boolean);
+  const staffIds = STAFF_ROLE_KEYS.map((key) => roles[key]?.id).filter(Boolean);
   return staffIds.some((id) => member.roles.cache.has(id));
 }

@@ -9,10 +9,16 @@ import { ChannelType } from 'discord.js';
 // name   : nom affiche sur Discord
 // hoist  : affiche separement dans la liste des membres
 // group  : rattache le role a un panneau de selection
+//
+// L'ordre compte : /setup les cree de haut en bas, du plus eleve au plus bas.
 
 export const ROLES = [
+  // Equipe, du plus haut au plus bas.
   { key: 'staff', name: '👑 Staff DematGames', color: 0xe8b923, hoist: true, mentionable: true },
-  { key: 'moderator', name: '🛡️ Modérateur', color: 0x5865f2, hoist: true, mentionable: true },
+  { key: 'founder', name: '🏛️ Fondateur', color: 0xc0392b, hoist: true, mentionable: true },
+  { key: 'admin', name: '⚙️ Admin', color: 0x9b59b6, hoist: true, mentionable: true },
+  { key: 'helper', name: '🛠️ Helpeur', color: 0x3498db, hoist: true, mentionable: true },
+
   { key: 'devPartner', name: '🎮 Développeur partenaire', color: 0x57f287, hoist: true, mentionable: true },
   { key: 'verified', name: '⭐ Membre vérifié', color: 0xeb459e, hoist: false, mentionable: false },
   { key: 'bots', name: '🤖 Bots', color: 0x99aab5, hoist: false, mentionable: false },
@@ -24,17 +30,18 @@ export const ROLES = [
   { key: 'plat_switch', name: 'Switch', color: 0x4f545c, group: 'platform', emoji: '🔴' },
   { key: 'plat_retro', name: 'Rétro', color: 0x4f545c, group: 'platform', emoji: '👾' },
 
-  // Notifications (panneau de roles)
+  // Notifications (panneau de roles) : un role par salon qui peut notifier.
   { key: 'notif_annonces', name: '📢 Annonces', color: 0x4f545c, group: 'notif', emoji: '📢' },
   { key: 'notif_sorties', name: '🚀 Sorties', color: 0x4f545c, group: 'notif', emoji: '🚀' },
-  { key: 'notif_concours', name: '🎁 Concours', color: 0x4f545c, group: 'notif', emoji: '🎁' },
-  { key: 'notif_clips', name: '🎥 Clips', color: 0x4f545c, group: 'notif', emoji: '🎥' },
 ];
 
 export const ROLE_GROUPS = {
   platform: { label: 'Plateformes', placeholder: 'Sur quoi joues-tu ?' },
   notif: { label: 'Notifications', placeholder: 'De quoi veux-tu être notifié ?' },
 };
+
+// Grades qui donnent acces aux salons et actions du staff.
+export const STAFF_ROLE_KEYS = ['staff', 'founder', 'admin', 'helper'];
 
 // --- CATEGORIES ET SALONS ---------------------------------------------------
 // key      : identifiant interne stable
@@ -52,9 +59,18 @@ export const CATEGORIES = [
     preset: 'PUBLIC_READONLY',
     channels: [
       { key: 'reglement', name: '📜・règlement', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['rules', 'reglement', 'règlement'], topic: 'Le règlement du serveur. Accepte-le pour accéder à la communauté.' },
-      { key: 'annonces', name: '📢・annonces', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['annonces'], topic: 'Annonces officielles DematGames.' },
       { key: 'bienvenue', name: '👋・bienvenue', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['bienvenue'], topic: 'Les nouveaux arrivants sont accueillis ici.' },
       { key: 'choisir-roles', name: '🏷️・choisir-ses-rôles', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['choisir-ses-rôles'], topic: 'Choisis tes plateformes et tes notifications.' },
+    ],
+  },
+  {
+    key: 'dematgames',
+    name: '🎮 DEMATGAMES',
+    preset: 'PUBLIC_READONLY',
+    channels: [
+      { key: 'annonces', name: '📢・annonces', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['annonces'], topic: 'Annonces officielles DematGames.' },
+      { key: 'sorties', name: '🚀・sorties-et-précommandes', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['sorties-et-précommandes'], topic: 'Sorties, précommandes et nouvelles éditions physiques.' },
+      { key: 'retours', name: '💡・retours-et-avis', type: 'text', preset: 'MEMBER_CHAT', aliases: ['retours-et-idées', 'retours-et-avis'], topic: 'Tes retours et tes avis sur nos éditions.' },
     ],
   },
   {
@@ -63,55 +79,28 @@ export const CATEGORIES = [
     preset: 'MEMBER_CHAT',
     channels: [
       { key: 'general', name: '💬・général', type: 'text', preset: 'MEMBER_CHAT', aliases: ['général'], topic: 'Discussion générale, de tout et de rien.' },
-      { key: 'hors-sujet', name: '🎲・hors-sujet', type: 'text', preset: 'MEMBER_CHAT', aliases: ['hors-sujet'], topic: 'Tout ce qui n a rien à voir avec le jeu vidéo.' },
       { key: 'jeux-video', name: '🎮・jeux-vidéo', type: 'text', preset: 'MEMBER_CHAT', aliases: ['jeux-vidéo'], topic: 'On parle jeux : ce qu on joue, ce qu on attend.' },
-      { key: 'actus-gaming', name: '📰・actus-gaming', type: 'text', preset: 'MEMBER_CHAT', aliases: ['actus-gaming'], topic: 'L actualité du jeu vidéo.' },
       { key: 'clips', name: '🎬・clips-et-screenshots', type: 'text', preset: 'MEMBER_CHAT', aliases: ['clips-et-screenshots'], topic: 'Tes meilleurs moments en image et en vidéo.', slowmode: 30 },
-      { key: 'lfg', name: '🔍・recherche-de-joueurs', type: 'text', preset: 'MEMBER_CHAT', aliases: ['recherche-de-joueurs'], topic: 'Trouve des joueurs pour ta prochaine partie.' },
-      { key: 'creations', name: '🎨・créations', type: 'text', preset: 'MEMBER_CHAT', aliases: ['créations'], topic: 'Fan art, mods, projets perso : montre ce que tu fais.' },
       { key: 'vocal-general', name: '🔊 Vocal général', type: 'voice', preset: 'VOICE_MEMBER' },
-      { key: 'vocal-jeu', name: '🔊 Vocal jeu', type: 'voice', preset: 'VOICE_MEMBER' },
-      { key: 'vocal-afk', name: '🔊 AFK', type: 'voice', preset: 'VOICE_MEMBER' },
-    ],
-  },
-  {
-    key: 'jeux',
-    name: '🕹️ JEUX DEMATGAMES',
-    preset: 'PUBLIC_READONLY',
-    channels: [
-      { key: 'catalogue', name: '💿・catalogue', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['catalogue'], topic: 'Les éditions physiques DematGames.' },
-      { key: 'sorties', name: '🚀・sorties-et-précommandes', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['sorties-et-précommandes'], topic: 'Sorties, précommandes et disponibilités.' },
-      { key: 'forum-jeux', name: '🗨️・forum-jeux', type: 'forum', preset: 'MEMBER_CHAT', aliases: ['forum-jeux'], topic: 'Un espace de discussion par jeu.', tags: ['Narratif', 'Famille', 'Rétro', 'Aventure', 'Action', 'Puzzle'] },
-      { key: 'retours', name: '💡・retours-et-idées', type: 'text', preset: 'MEMBER_CHAT', aliases: ['retours-et-idées'], topic: 'Tes retours et tes idées sur nos éditions.' },
     ],
   },
   {
     key: 'studio',
-    name: '🏭 STUDIO & COULISSES',
+    name: '🏭 STUDIO DEMATGAMES',
     preset: 'PUBLIC_READONLY',
     channels: [
-      { key: 'coulisses', name: '🏭・coulisses', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['coulisses'], topic: 'On grave, on imprime, on expédie : les coulisses de l atelier.' },
-      { key: 'support', name: '🎫・support', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['support'], topic: 'Une question sur une commande, un colis, un SAV ? Ouvre un ticket.' },
-    ],
-  },
-  {
-    key: 'devs',
-    name: '🛠️ ESPACE DÉVELOPPEURS',
-    preset: 'PUBLIC_READONLY',
-    channels: [
+      { key: 'nos-services', name: '💼・nos-services', type: 'text', preset: 'PUBLIC_READONLY', topic: 'Éditions physiques de jeux indés : pressage, jaquettes, livrets, expédition.' },
+      { key: 'faq', name: '❓・faq', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['faq-devs'], topic: 'Tirages, éditions, délais, tarifs : les réponses aux questions fréquentes.' },
       { key: 'editer-mon-jeu', name: '📨・éditer-mon-jeu', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['éditer-mon-jeu'], topic: 'Tu développes un jeu ? Passe-le en édition physique avec DematGames.' },
-      { key: 'faq-devs', name: '❓・faq-devs', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['faq-devs'], topic: 'Tirages, éditions, délais, critères : les réponses aux questions fréquentes.' },
-      { key: 'vitrine-devs', name: '🖼️・vitrine-devs', type: 'text', preset: 'MEMBER_CHAT', aliases: ['vitrine-devs'], topic: 'Les devs partagent leurs projets en cours : WIP, trailers, devlogs.' },
-      { key: 'entraide-dev', name: '🤝・entraide-dev', type: 'text', preset: 'MEMBER_CHAT', aliases: ['entraide-dev'], topic: 'Entraide entre développeurs : outils, moteurs, édition, distribution.' },
-      { key: 'projets-en-cours', name: '📦・projets-en-cours', type: 'text', preset: 'DEV_PARTNER', aliases: ['projets-en-cours'], topic: 'Suivi de production des jeux signés : maquettes, BAT, pressage, expédition.' },
-      { key: 'vocal-devs', name: '🔊 Vocal devs', type: 'voice', preset: 'VOICE_DEV' },
     ],
   },
   {
-    key: 'tickets',
-    name: '🎫 TICKETS',
-    preset: 'TICKET_CATEGORY',
-    channels: [],
+    key: 'support',
+    name: '🎫 SUPPORT',
+    preset: 'PUBLIC_READONLY',
+    channels: [
+      { key: 'ouvrir-un-ticket', name: '🎫・ouvrir-un-ticket', type: 'text', preset: 'PUBLIC_READONLY', aliases: ['support'], topic: 'Une question sur une commande, un colis, un SAV ? Ouvre un ticket.' },
+    ],
   },
   {
     key: 'staff',
@@ -125,6 +114,9 @@ export const CATEGORIES = [
     ],
   },
 ];
+
+// Les salons de tickets sont crees a la volee sous cette categorie.
+export const TICKET_CATEGORY_KEY = 'support';
 
 export const CHANNEL_TYPES = {
   text: ChannelType.GuildText,

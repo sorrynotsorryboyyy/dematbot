@@ -15,8 +15,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import { TICKET_CATEGORY_KEY } from '../config/blueprint.js';
 import { submissions, tickets as ticketsDb } from '../db/index.js';
-import { isStaff, resolveCategory, resolveChannel, resolveRoles } from '../lib/guild.js';
+import { isStaff, resolveCategory, resolveRoles } from '../lib/guild.js';
 import { ticketOverwrites } from '../lib/permissions.js';
 import * as embeds from '../lib/embeds.js';
 import * as logger from '../lib/logger.js';
@@ -252,7 +253,7 @@ async function openSimpleTicket(interaction, type) {
 
   if (!channel) {
     await interaction.editReply({
-      embeds: [embeds.error('Impossible de créer le salon. La catégorie TICKETS existe-t-elle ? Lance `/setup`.')],
+      embeds: [embeds.error('Impossible de créer le salon. La catégorie SUPPORT existe-t-elle ? Lance `/setup`.')],
     });
     return;
   }
@@ -307,7 +308,7 @@ async function onSubmitForm(interaction) {
 
   if (!channel) {
     await interaction.editReply({
-      embeds: [embeds.error('Impossible de créer le salon. La catégorie TICKETS existe-t-elle ? Lance `/setup`.')],
+      embeds: [embeds.error('Impossible de créer le salon. La catégorie SUPPORT existe-t-elle ? Lance `/setup`.')],
     });
     return;
   }
@@ -350,7 +351,7 @@ async function onSubmitForm(interaction) {
 
 async function createTicketChannel(interaction, ticketId, type, slug) {
   const guild = interaction.guild;
-  const category = await resolveCategory(guild, 'tickets');
+  const category = await resolveCategory(guild, TICKET_CATEGORY_KEY);
   const roles = await resolveRoles(guild);
 
   const prefix = type === 'submission' ? 'dev' : 'ticket';
@@ -425,8 +426,6 @@ async function onAccept(interaction) {
   }
 
   ticketsDb.setStatus(ticket.id, 'accepted', interaction.user.id);
-
-  const projets = await resolveChannel(interaction.guild, 'projets-en-cours');
 
   await interaction.editReply({
     embeds: [

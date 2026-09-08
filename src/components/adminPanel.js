@@ -39,10 +39,10 @@ export function buildPanel() {
         [`${EMOJI.announce} Annonce`, 'une annonce dans le salon de ton choix'],
         [`${EMOJI.release} Sortie`, 'la sortie d une édition physique'],
         [`${EMOJI.preorder} Précommande`, 'ouvrir les précommandes d un jeu'],
-        [`${EMOJI.game} Fiche jeu`, 'ajouter ou mettre à jour un jeu du catalogue'],
+        [`${EMOJI.game} Fiche jeu`, 'publier ou mettre à jour la fiche d une édition'],
       ])),
       block('⚙️', 'Configurer', bullets([
-        [`${EMOJI.roles} Panneaux`, 'republier règlement, rôles, support, espace devs…'],
+        [`${EMOJI.roles} Panneaux`, 'republier règlement, rôles, services, support…'],
         [`${EMOJI.dev} Partenaire`, 'promouvoir un membre en développeur partenaire'],
       ])),
     ),
@@ -114,7 +114,7 @@ const FORMS = {
       { id: 'url', label: 'Lien boutique', style: 'short', required: false },
       { id: 'image', label: 'URL de la jaquette', style: 'short', required: false },
     ],
-    channelKey: 'catalogue',
+    channelKey: 'sorties',
   },
 };
 
@@ -268,7 +268,6 @@ async function onPublish(interaction, action) {
 
   if (action === 'game') {
     // Une fiche jeu est persistee : republication en place si elle existe deja.
-    const wasEmpty = games.count() === 0;
     const saved = games.upsert(payload);
     embed = embeds.gameCard(saved);
 
@@ -284,10 +283,7 @@ async function onPublish(interaction, action) {
       games.setMessage(saved.name, sent.id);
     }
 
-    // Premiere fiche : l'embed d'attente n'a plus lieu d'etre.
-    if (wasEmpty) await clearPlaceholder(channel);
 
-    await createForumPost(guild, saved, embed);
   } else {
     embed = action === 'announce' ? embeds.announcement(payload)
       : action === 'release' ? embeds.release(payload)
@@ -309,45 +305,15 @@ async function onPublish(interaction, action) {
   });
 }
 
-// Supprime l'embed d'attente du catalogue une fois un vrai jeu publie.
-async function clearPlaceholder(channel) {
-  const recent = await channel.messages.fetch({ limit: 20 }).catch(() => null);
-  if (!recent) return;
-  const placeholder = recent.find(
-    (m) => m.author.bot && m.embeds[0]?.title === 'Catalogue bientôt disponible',
-  );
-  if (placeholder) await placeholder.delete().catch(() => {});
-}
-
-// Cree le fil de discussion du jeu dans le forum, s'il n'existe pas deja.
-async function createForumPost(guild, game, embed) {
-  if (game.thread_id) return;
-  const forum = await resolveChannel(guild, 'forum-jeux');
-  if (!forum || forum.type !== 15) return;
-
-  const tag = forum.availableTags?.find((t) => t.name.toLowerCase() === (game.genre || '').toLowerCase());
-
-  const thread = await forum.threads
-    .create({
-      name: game.name,
-      message: { embeds: [embed] },
-      appliedTags: tag ? [tag.id] : [],
-      reason: 'Fiche jeu ajoutée au catalogue',
-    })
-    .catch(() => null);
-
-  if (thread) games.setThread(game.name, thread.id);
-}
-
 // --- republication des panneaux ---------------------------------------------
 
 const PANELS = {
   rules: { label: 'Règlement', channel: 'reglement' },
   roles: { label: 'Choix des rôles', channel: 'choisir-roles' },
-  support: { label: 'Support', channel: 'support' },
+  support: { label: 'Support', channel: 'ouvrir-un-ticket' },
   devs: { label: 'Espace développeurs', channel: 'editer-mon-jeu' },
-  faq: { label: 'FAQ développeurs', channel: 'faq-devs' },
-  catalogue: { label: 'Catalogue (embed d attente)', channel: 'catalogue' },
+  faq: { label: 'Questions fréquentes', channel: 'faq' },
+  services: { label: 'Nos services', channel: 'nos-services' },
 };
 
 async function onPanels(interaction) {
@@ -393,7 +359,7 @@ async function onRepublish(interaction, key) {
   else if (key === 'support') message = await channel.send(tickets.buildSupportPanel());
   else if (key === 'devs') message = await channel.send(tickets.buildDevPanel());
   else if (key === 'faq') message = await channel.send({ embeds: [embeds.devFaq()] });
-  else if (key === 'catalogue') message = await channel.send({ embeds: [embeds.emptyCatalogue()] });
+  else if (key === 'services') message = await channel.send({ embeds: [embeds.servicesHeader()] });
 
   await interaction.editReply({
     embeds: [embeds.success(`**${def.label}** publié dans ${channel}. [Voir](${message.url})`)],

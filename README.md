@@ -2,7 +2,7 @@
 
 Bot Discord du serveur communautaire **DematGames** — édition physique de jeux indés.
 
-Il construit et gère la structure du serveur (salons, catégories, rôles, permissions), anime la partie communautaire, et pilote la partie studio : annonces, sorties, précommandes, catalogue, support client et soumissions de jeux par les développeurs.
+Il construit et gère la structure du serveur (salons, catégories, rôles, permissions), anime la partie communautaire, et pilote la partie studio : annonces, sorties, précommandes, support client et soumissions de jeux par les développeurs.
 
 ---
 
@@ -73,7 +73,7 @@ Dans cet ordre, sur un **serveur de test** avant le vrai serveur :
 ```
 /setup simulation:true   → affiche ce qui serait créé, sans rien modifier
 /setup                   → crée rôles, catégories, salons et permissions
-/panneaux                → publie règlement, rôles, support, espace devs, FAQ, en-têtes de salons
+/panneaux                → publie règlement, rôles, services, FAQ, support, en-têtes de salons
 /panel                   → publie le hub de gestion dans #panel-admin
 ```
 
@@ -81,11 +81,32 @@ Dans cet ordre, sur un **serveur de test** avant le vrai serveur :
 
 `/panneaux` l'est aussi : il retrouve chaque message permanent par le titre de son embed et le **met à jour** au lieu d'en empiler un nouveau. Relance-le après toute modification d'un texte d'embed.
 
-### Habillage des salons
+### Structure du serveur
 
-Les salons portent un emoji suivi du séparateur `・` (`📢・annonces`, `💬・général`…), défini dans `src/config/blueprint.js`. Pour changer un emoji ou un nom : édite le blueprint et relance `/setup`.
+```
+📌 ACCUEIL              règlement · bienvenue · choisir-ses-rôles
+🎮 DEMATGAMES           annonces · sorties-et-précommandes · retours-et-avis
+💬 COMMUNAUTÉ           général · jeux-vidéo · clips-et-screenshots · 🔊 Vocal
+🏭 STUDIO DEMATGAMES    nos-services · faq · éditer-mon-jeu
+🎫 SUPPORT              ouvrir-un-ticket (+ tickets créés à la volée)
+🔒 STAFF                panel-admin · moderator-only · logs-bot · 🔊 Vocal staff
+```
 
-Les **embeds d'en-tête** ne sont publiés que dans les salons vitrine (`coulisses`, `vitrine-devs`, `retours-et-idées`, `projets-en-cours`, `sorties-et-précommandes`), le forum et les salons staff. Les salons de discussion (`général`, `hors-sujet`, `jeux-vidéo`, `actus-gaming`, `clips`, `recherche-de-joueurs`, `créations`, `entraide-dev`) restent volontairement vierges pour ne pas gêner la conversation.
+Volontairement réduite : mieux vaut peu de salons vivants que beaucoup de salons vides. Pour en ajouter, édite `src/config/blueprint.js` et relance `/setup`.
+
+Les salons portent un emoji suivi du séparateur `・` (`📢・annonces`, `💬・général`…). Les **embeds d'en-tête** ne vont que dans les salons vitrine et staff : les salons de discussion (`général`, `jeux-vidéo`, `clips-et-screenshots`) restent vierges pour ne pas gêner la conversation.
+
+### Rôles
+
+| Rôle | Portée |
+|---|---|
+| 👑 Staff DematGames | l'équipe, chapeaute la hiérarchie |
+| 🏛️ Fondateur · ⚙️ Admin · 🛠️ Helpeur | les trois grades staff |
+| 🎮 Développeur partenaire | attribué quand un projet est accepté |
+| ⭐ Membre vérifié | a accepté le règlement |
+| 🤖 Bots | |
+
+Les quatre premiers (`STAFF_ROLE_KEYS` dans le blueprint) donnent accès aux salons staff, aux tickets et aux actions de modération. S'y ajoutent les rôles cosmétiques du panneau de sélection : plateformes et notifications.
 
 ---
 
@@ -105,11 +126,34 @@ Sur Railway, saisis les variables sans guillemets ni espaces autour du `=`. Les 
 
 ---
 
+## Repartir de zéro : `/reset`
+
+`/reset` supprime la structure créée par le bot pour reconstruire proprement. **Les salons et rôles créés à la main sont conservés** — seul ce que décrit le blueprint est touché.
+
+```
+/reset cible:tout simulation:true        → liste ce qui serait supprimé, sans rien toucher
+/reset cible:tout confirmation:<serveur> → puis clique sur « Supprimer définitivement »
+```
+
+`cible` accepte `tout`, `salons`, `roles` ou `donnees` (vider la base sans toucher au serveur).
+
+Cinq garde-fous, cumulatifs :
+1. Permission Administrateur exigée par Discord
+2. **Réservée au propriétaire du serveur** — un admin ne suffit pas
+3. Le nom exact du serveur doit être tapé dans `confirmation`
+4. Un récapitulatif s'affiche, avec un bouton à cliquer (60 s)
+5. `simulation:true` permet de tout voir sans rien supprimer
+
+> ⚠️ Les messages des salons supprimés sont **définitivement perdus**. Après un reset, relance `/setup` puis `/panneaux`.
+
+---
+
 ## Commandes
 
 | Commande | Rôle |
 |---|---|
 | `/setup [simulation]` | Construit ou met à jour la structure du serveur |
+| `/reset` | ⚠️ Supprime la structure créée par le bot — propriétaire du serveur uniquement |
 | `/panel [salon]` | Publie le hub de gestion à boutons |
 | `/panneaux` | Publie tous les messages permanents |
 | `/salon` | `creer` · `renommer` · `supprimer` · `deplacer` · `verrouiller` · `deverrouiller` · `slowmode` |
@@ -121,11 +165,11 @@ Sur Railway, saisis les variables sans guillemets ni espaces autour du `=`. Les 
 
 `/panel` publie un message épinglé dans `#panel-admin`. Chaque bouton ouvre un formulaire, affiche un aperçu, puis publie dans le bon salon :
 
-- **Annonce** → `#annonces`, avec ping optionnel du rôle *📢 Annonces*
+- **Annonce** → `#annonces` (catégorie DematGames), avec ping optionnel du rôle *📢 Annonces*
 - **Sortie** → `#sorties-et-précommandes`, ping *🚀 Sorties*
 - **Précommande** → `#sorties-et-précommandes`, ping *🚀 Sorties*
-- **Fiche jeu** → `#catalogue` + création du post dans le forum jeux
-- **Panneaux** → republie règlement, rôles, support, espace devs, FAQ, catalogue
+- **Fiche jeu** → `#sorties-et-précommandes`
+- **Panneaux** → republie règlement, rôles, services, FAQ, support
 - **Partenaire** → promeut un membre en *🎮 Développeur partenaire*
 
 Les `customId` sont statiques : le panneau reste fonctionnel après un redémarrage du bot.
@@ -134,12 +178,12 @@ Les `customId` sont statiques : le panneau reste fonctionnel après un redémarr
 
 ## Espace développeurs
 
-`#éditer-mon-jeu` porte l'offre DematGames et deux boutons :
+La catégorie **🏭 STUDIO DEMATGAMES** présente vos services : `#nos-services` (l'offre), `#faq` (tirages, délais, tarifs) et `#éditer-mon-jeu`, qui porte deux boutons :
 
-- **Soumettre mon jeu** — parcours en 5 étapes (état du jeu, tirage, type d'édition, taille d'équipe, puis un formulaire nom/description/lien/contact). À la validation, un salon privé `dev-0001-nom-du-jeu` est créé sous `🎫 TICKETS`, avec le récapitulatif épinglé et le staff notifié.
+- **Soumettre mon jeu** — parcours en 5 étapes (état du jeu, tirage, type d'édition, taille d'équipe, puis un formulaire nom/description/lien/contact). À la validation, un salon privé `dev-0001-nom-du-jeu` est créé sous `🎫 SUPPORT`, avec le récapitulatif épinglé et le staff notifié.
 - **Poser une question** — ticket d'échange simple avec le staff.
 
-Dans le salon de soumission, le staff dispose de **Prendre en charge**, **Accepter le projet** (attribue *Développeur partenaire* et ouvre `#projets-en-cours`), **Mettre en attente** et **Fermer** (transcript vers `#logs-bot`, puis suppression).
+Dans le salon de soumission, le staff dispose de **Prendre en charge**, **Accepter le projet** (attribue *Développeur partenaire*), **Mettre en attente** et **Fermer** (transcript vers `#logs-bot`, puis suppression). Le suivi de production se poursuit dans le salon du ticket.
 
 ---
 

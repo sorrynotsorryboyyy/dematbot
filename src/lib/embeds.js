@@ -65,29 +65,6 @@ export function gameCard(game) {
   return e;
 }
 
-// Embed d'attente affiche dans #catalogue tant qu'aucun jeu n'est enregistre.
-export function emptyCatalogue() {
-  return base(COLORS.neutral)
-    .setTitle('💿  Catalogue bientôt disponible')
-    .setDescription(
-      stack(
-        'Les premières éditions physiques DematGames arrivent.',
-        block('📦', 'Ce que contient une édition', bullets([
-          'Un disque pressé du jeu',
-          'Un boîtier et une jaquette imprimés',
-          'Un livret glissé dans la boîte',
-        ])),
-        block('🇪🇺', 'Fabrication et expédition', bullets([
-          'Fabriqué à la demande en Europe',
-          'Expédition suivie dans toute l UE',
-          'Jouable hors ligne, sans compte ni plateforme',
-        ])),
-        divider(),
-        `Le catalogue complet est sur ${SITE_URL}`,
-      ),
-    );
-}
-
 // Embed permanent de #éditer-mon-jeu : la porte d'entree des developpeurs.
 export function devPitch() {
   return base(COLORS.primary)
@@ -106,8 +83,11 @@ export function devPitch() {
 
 export function devFaq() {
   return base(COLORS.info)
-    .setTitle('❓  FAQ développeurs')
-    .setDescription('Les questions qu on nous pose le plus souvent. Il en manque une ? Ouvre un ticket depuis l espace développeurs.')
+    .setTitle('❓  Questions fréquentes')
+    .setDescription(
+      'Les questions qu on nous pose le plus souvent sur nos éditions physiques. ' +
+        'Il en manque une ? Passe par **📨・éditer-mon-jeu** ou ouvre un ticket.',
+    )
     .addFields(
       { name: '📦  Quels tirages ?', value: 'De 50 à plus de 500 exemplaires. On adapte au projet et à ton audience.' },
       { name: '💎  Quelles éditions ?', value: 'Standard, deluxe, collector — ou une formule définie ensemble.' },
@@ -118,48 +98,30 @@ export function devFaq() {
     );
 }
 
-// --- en-tetes de salons ------------------------------------------------------
-// Publies par /panneaux dans les salons vitrine, le forum et les salons staff.
-
-export function coulissesHeader() {
+// Vitrine de l'offre DematGames, en tete de la categorie STUDIO.
+export function servicesHeader() {
   return header({
-    emoji: '🏭',
-    title: 'Les coulisses de l atelier',
+    emoji: '💼',
+    title: 'Nos services',
     color: COLORS.primary,
-    intro: 'On grave, on imprime, on expédie — et on montre tout ici.',
+    intro: 'DematGames édite des jeux indés en physique. On s occupe de tout, du disque au colis.',
     blocks: [
-      block('📸', 'Ce que tu verras passer', bullets([
-        'Le pressage des disques',
-        'Les maquettes et les jaquettes en cours',
-        'Les livrets, les boîtiers, les finitions',
-        'Les colis prêts à partir',
+      block('💿', 'Ce qu on fabrique', bullets([
+        ['Le disque', 'pressé et sérigraphié'],
+        ['Le boîtier', 'avec sa jaquette imprimée'],
+        ['Le livret', 'glissé dans la boîte'],
+        ['L édition', 'standard, deluxe ou collector'],
       ])),
+      block('🇪🇺', 'Comment on travaille', bullets(SELLING_POINTS)),
       divider(),
-      'Salon en lecture seule. Une question sur ce que tu vois ? Le support est à ta disposition.',
+      `Tu développes un jeu ? Rendez-vous dans **📨・éditer-mon-jeu**. ` +
+        `La boutique et le catalogue sont sur ${SITE_URL}`,
     ],
   });
 }
 
-export function vitrineDevsHeader() {
-  return header({
-    emoji: '🖼️',
-    title: 'La vitrine des développeurs',
-    color: COLORS.success,
-    intro: 'Tu développes un jeu ? Montre-le ici, à n importe quel stade.',
-    blocks: [
-      block('🎬', 'Ce qu on aime voir', bullets([
-        'Des captures et des GIF de ton jeu en action',
-        'Un trailer, même court',
-        'Des devlogs : ce que tu construis, ce qui coince',
-        'Le lien vers ta page Steam ou itch.io',
-      ])),
-      block('💡', 'Bon à savoir', bullets([
-        ['Une question technique ?', 'l entraide entre devs a son propre salon'],
-        ['Envie d une édition physique ?', 'passe par l espace développeurs'],
-      ])),
-    ],
-  });
-}
+// --- en-tetes de salons ------------------------------------------------------
+// Publies par /panneaux dans les salons vitrine et les salons staff.
 
 export function retoursHeader() {
   return header({
@@ -179,25 +141,6 @@ export function retoursHeader() {
   });
 }
 
-export function projetsEnCoursHeader() {
-  return header({
-    emoji: '📦',
-    title: 'Suivi de production',
-    color: COLORS.success,
-    intro: 'Salon réservé aux développeurs partenaires et à l équipe DematGames.\nC est ici qu on suit ton édition, étape par étape.',
-    blocks: [
-      block('🔄', 'Les étapes', steps([
-        'Maquette — jaquette, livret, sérigraphie du disque',
-        'BAT — le bon à tirer que tu valides avant lancement',
-        'Pressage — fabrication des exemplaires',
-        'Expédition — départ des colis, suivi transmis',
-      ])),
-      divider(),
-      'Chaque étape est annoncée ici. Pose tes questions directement dans le salon.',
-    ],
-  });
-}
-
 export function sortiesHeader() {
   return header({
     emoji: '🚀',
@@ -211,25 +154,6 @@ export function sortiesHeader() {
       ])),
       divider(),
       `Salon en lecture seule. La boutique complète est sur ${SITE_URL}`,
-    ],
-  });
-}
-
-export function forumGuidelines() {
-  return header({
-    emoji: '🗨️',
-    title: 'Comment utiliser ce forum',
-    color: COLORS.info,
-    intro: 'Un sujet par jeu : discussions, questions, impressions de jeu.',
-    blocks: [
-      block('📝', 'Ouvrir un sujet', bullets([
-        'Un titre clair : le nom du jeu suffit',
-        'Applique le tag qui correspond à son genre',
-        'Vérifie qu un sujet n existe pas déjà avant d en créer un',
-      ])),
-      block('🏷️', 'Les tags', 'Narratif · Famille · Rétro · Aventure · Action · Puzzle'),
-      divider(),
-      'Pas de spoilers dans les titres. Dans un message, utilise les balises spoiler.',
     ],
   });
 }

@@ -13,7 +13,8 @@ import {
 import { CATEGORIES, CHANNEL_TYPES, ROLES } from '../../config/blueprint.js';
 import { resolvePreset } from '../../lib/permissions.js';
 import { withRoleFallbacks } from '../../lib/guild.js';
-import { channelId, roleId, setChannelId, setRoleId } from '../../db/index.js';
+import { findCategory, findChannel, findRole } from '../../lib/blueprintLookup.js';
+import { setChannelId, setRoleId } from '../../db/index.js';
 import * as embeds from '../../lib/embeds.js';
 import { COLORS } from '../../config/brand.js';
 import * as logger from '../../lib/logger.js';
@@ -138,25 +139,6 @@ async function buildPlan(guild) {
   }
 
   return { actions, existingRoles };
-}
-
-function findRole(guild, def) {
-  const id = roleId(def.key);
-  if (id && guild.roles.cache.has(id)) return guild.roles.cache.get(id);
-  return guild.roles.cache.find((r) => r.name === def.name) || null;
-}
-
-function findCategory(guild, def) {
-  const id = channelId(`cat:${def.key}`);
-  if (id && guild.channels.cache.has(id)) return guild.channels.cache.get(id);
-  return guild.channels.cache.find((c) => c.type === ChannelType.GuildCategory && c.name === def.name) || null;
-}
-
-function findChannel(guild, def) {
-  const id = channelId(def.key);
-  if (id && guild.channels.cache.has(id)) return guild.channels.cache.get(id);
-  const names = [def.name, ...(def.aliases || [])];
-  return guild.channels.cache.find((c) => c.type !== ChannelType.GuildCategory && names.includes(c.name)) || null;
 }
 
 function renderPlan(plan, dryRun) {

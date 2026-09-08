@@ -1,4 +1,4 @@
-// /jeu : consulter et retirer les fiches du catalogue.
+// /jeu : consulter et retirer les fiches jeux publiees dans #sorties-et-precommandes.
 // L'ajout et la mise a jour passent par le panneau admin (formulaire guide).
 
 import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
@@ -38,11 +38,11 @@ export async function execute(interaction) {
     const list = games.list();
 
     if (!list.length) {
-      const catalogue = await resolveChannel(interaction.guild, 'catalogue');
+      const sorties = await resolveChannel(interaction.guild, 'sorties');
       await interaction.editReply({
         embeds: [
           embeds.info(
-            `Le catalogue est encore vide — les premières éditions arrivent.${catalogue ? `\nSuis ${catalogue} pour ne rien rater.` : ''}`,
+            `Aucune édition publiée pour l instant — les premières arrivent.${sorties ? `\nSuis ${sorties} pour ne rien rater.` : ''}`,
           ),
         ],
       });
@@ -89,10 +89,10 @@ export async function execute(interaction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  // Retire aussi le message publie dans #catalogue, s'il existe encore.
+  // Retire aussi le message publie dans #sorties, s'il existe encore.
   if (game.message_id) {
-    const catalogue = await resolveChannel(interaction.guild, 'catalogue');
-    const msg = await catalogue?.messages.fetch(game.message_id).catch(() => null);
+    const sorties = await resolveChannel(interaction.guild, 'sorties');
+    const msg = await sorties?.messages.fetch(game.message_id).catch(() => null);
     await msg?.delete().catch(() => {});
   }
 

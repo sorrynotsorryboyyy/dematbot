@@ -1,9 +1,15 @@
 import { PermissionFlagsBits as P } from 'discord.js';
+import { STAFF_ROLE_KEYS } from '../config/blueprint.js';
+
+// Applique les memes droits a tous les grades du staff, en ignorant ceux qui
+// n'existent pas encore sur le serveur.
+const forEachStaff = (r, allow) =>
+  STAFF_ROLE_KEYS.map((key) => r[key]).filter(Boolean).map((role) => ({ id: role.id, allow }));
 
 // Presets de permissions. Chaque preset est une fonction qui recoit les roles
 // resolus du serveur et rend un tableau de permissionOverwrites pret a l'emploi.
 //
-// roles : { everyone, staff, moderator, devPartner, verified, bots }
+// roles : { everyone, staff, founder, admin, helper, devPartner, verified, bots }
 
 export const PRESETS = {
   // Tout le monde lit, personne n'ecrit (sauf staff).
@@ -27,8 +33,7 @@ export const PRESETS = {
   // Staff et moderateurs uniquement.
   STAFF_ONLY: (r) => [
     { id: r.everyone.id, deny: [P.ViewChannel] },
-    { id: r.staff.id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.ManageMessages] },
-    { id: r.moderator.id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.ManageMessages] },
+    ...forEachStaff(r, [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.ManageMessages]),
   ],
 
   // Suivi de production : staff + developpeurs partenaires.
@@ -48,8 +53,7 @@ export const PRESETS = {
   // Vocal staff.
   VOICE_STAFF: (r) => [
     { id: r.everyone.id, deny: [P.ViewChannel] },
-    { id: r.staff.id, allow: [P.ViewChannel, P.Connect, P.Speak] },
-    { id: r.moderator.id, allow: [P.ViewChannel, P.Connect, P.Speak] },
+    ...forEachStaff(r, [P.ViewChannel, P.Connect, P.Speak]),
   ],
 
   // Vocal devs : partenaires + staff.
@@ -71,7 +75,7 @@ export function ticketOverwrites(roles, userId) {
   return [
     { id: roles.everyone.id, deny: [P.ViewChannel] },
     { id: userId, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AttachFiles, P.EmbedLinks] },
-    { id: roles.staff.id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.ManageMessages] },
+    ...forEachStaff(roles, [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.ManageMessages]),
   ];
 }
 
